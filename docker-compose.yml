@@ -1,0 +1,101 @@
+version: '2'
+
+services:
+  zookeeper:
+    image: "bitnami/zookeeper:latest"
+    restart: always
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    ports:
+      - "2181:2181"
+      - "2888:2888"
+      - "3888:3888"
+  kafka:
+    image: "bitnami/kafka:latest"
+    container_name: kafka
+    restart: always
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper
+  
+  producer_1:
+    build: ./producers
+    container_name: producer_1
+    depends_on:
+      - kafka
+      - zookeeper
+    volumes:
+      - ./producers:/usr/src/app
+
+  producer_2:
+    build: ./producers
+    container_name: producer_2
+    depends_on:
+      - kafka
+      - zookeeper
+    volumes:
+      - ./producers:/usr/src/app
+
+  producer_3:
+    build: ./producers
+    container_name: producer_3
+    depends_on:
+      - kafka
+      - zookeeper
+    volumes:
+      - ./producers:/usr/src/app
+
+  producer_4:
+    build: ./producers
+    container_name: producer_4
+    depends_on:
+      - kafka
+      - zookeeper
+    volumes:
+      - ./producers:/usr/src/app
+
+  producer_5:
+    build: ./producers
+    container_name: producer_5
+    depends_on:
+      - kafka
+      - zookeeper
+    volumes:
+      - ./producers:/usr/src/app
+
+  consumer:
+    build: ./consumers
+    container_name: consumer
+    depends_on:
+      - kafka
+      - zookeeper
+      - producer_1
+      - producer_2
+      - producer_3
+      - producer_4
+      - producer_5
+    volumes:
+      - ./consumers:/usr/src/app
+
+  database:
+    build: ./database
+    container_name: database
+    volumes:
+      - ./database:/usr/src/app
+
+  db:
+    container_name: db
+    image: postgres:16.0-alpine3.18
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=t2
+      - POSTGRES_PASSWORD=postgres
+      - PGDATA=/var/lib/postgresql/data/some_name/
+    ports:
+      - "5433:5432"

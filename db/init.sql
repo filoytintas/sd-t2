@@ -1,0 +1,3 @@
+CREATE TABLE solicitudes_suscripcion(id SERIAL, ts timestamp, email_vendedor VARCHAR(50), tipo_suscripcion VARCHAR(10));
+CREATE TABLE reporte_ventas(id SERIAL, ts timestamp, email_vendedor VARCHAR(50), tipo_suscripcion VARCHAR(10), n_venta INT, cantidad_vendida INT, valor_venta INT);
+CREATE TABLE solicitudes_stock(id SERIAL, ts timestamp, email_vendedor VARCHAR(50), tipo_suscripcion VARCHAR(10), mensaje VARCHAR(256));
