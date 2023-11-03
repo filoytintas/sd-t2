@@ -4,10 +4,6 @@ import time
 import argparse
 import random
 
-from email.message import EmailMessage
-import ssl
-import smtplib
-
 servidores_bootstrap = 'kafka:9092'
 
 productor = KafkaProducer(
@@ -15,32 +11,11 @@ productor = KafkaProducer(
     value_serializer=lambda x: dumps(x).encode('utf-8')
 )
 
-email_sender = "kafkarandom@gmail.com"
-password = "nvkz jdoa mlhs mkms" 
-
 def enviar_mail_suscripcion(tipo_suscripcion, email):
     topic = 'suscripcion'
     print(f"Te hemos enviado un correo con las credenciales a la dirección: {email}")
     print(f"Tu tipo de suscripción es: {tipo_suscripcion}")
     print("*******************************************")
-
-    email_reciver = email
-    em = EmailMessage()
-
-    subject = "Gremio Mote Huesillero"
-    body =  """ 
-    Bienvenido al gremio Mote Huesillero has sido aceptado 
-"""
-    em["From"] = email_sender
-    em["To"] = email_reciver
-    em["Subject"] = subject
-    em.set_content(body)
-
-    context = ssl.create_default_context()
-
-    with smtplib.SMTP_SSL("smtp.gmail.com",465,context = context) as smtp:
-        smtp.login(email_sender,password)
-        smtp.sendmail(email_sender,email_reciver,em.as_string())
 
     mensaje = {
         "timestamp": int(time.time()),

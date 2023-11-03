@@ -2,6 +2,13 @@ from kafka import KafkaConsumer
 import json
 from psycopg2 import connect
 import datetime
+import random
+import string
+
+from email.message import EmailMessage
+import ssl
+import smtplib
+
 
 def init_db():
     conn = connect(
@@ -12,6 +19,11 @@ def init_db():
     )
     return conn
 
+def generar_contrasena():
+    caracteres = string.ascii_letters + string.digits + string.punctuation
+    contrasena = ''.join(random.choice(caracteres) for i in range(16))
+    return contrasena
+
 servidores_bootstrap = 'kafka:9092'
 
 # Tópicos a consumir
@@ -19,6 +31,9 @@ topics = ['suscripcion', 'ventas', 'stock']
 
 # Configurar los nombres de los grupos de consumidores
 grupo_consumidores = 'grupo_consumidores'
+
+email_sender = "kafkarandom@gmail.com"
+password = "nvkz jdoa mlhs mkms" 
 
 # Configurar el consumidor con el group_id y añadir deserializador de json
 consumer = KafkaConsumer(
@@ -47,6 +62,28 @@ for msg in consumer:
         insert_query_values = (t_s, msg.value["email_vendedor"], msg.value["tipo_suscripcion"])
         cur.execute(insert_query, insert_query_values)
         conn.commit()
+        email_reciver = msg.value["email_vendedor"]
+
+
+        contrasena = generar_contrasena()
+
+        em = EmailMessage()
+        subject = "Gremio Mote Huesillero"
+        body =  """ 
+        Bienvenido al gremio Mote Huesillero, has sido aceptado. Tus credenciales de acceso son: 
+    """
+        body = body + str(email_reciver) + "\n" + str(contrasena) + "\n"
+        em["From"] = email_sender
+        em["To"] = email_reciver
+        em["Subject"] = subject
+        em.set_content(body)
+
+        context = ssl.create_default_context()
+
+        with smtplib.SMTP_SSL("smtp.gmail.com",465,context = context) as smtp:
+            smtp.login(email_sender,password)
+            smtp.sendmail(email_sender,email_reciver,em.as_string())
+
         if msg.value["tipo_suscripcion"] == "paid":
             print("Procesando solicitud de suscripción paga:", msg.value)
         elif msg.value["tipo_suscripcion"] == "free":
